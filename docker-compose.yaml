@@ -1,6 +1,19 @@
 version: '3.1'
 
 services:
+  node:
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    volumes:
+      - './backend/:/usr/src/app'
+      - './backend/node_modules:/usr/src/app/node_modules'
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+
+
   mongodb:
     image: mongo:4.4.2
     environment:
@@ -12,6 +25,12 @@ services:
     volumes:
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       - ./db:/data/db
-#    ports:
-#      - 27017:27017
+    ports:
+      - "27017:27017"
     restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
