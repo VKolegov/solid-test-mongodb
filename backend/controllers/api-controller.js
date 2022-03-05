@@ -1,13 +1,24 @@
 const mongoose = require("mongoose");
 const express = require("express");
+const fns = require('date-fns')
 
 module.exports = class ApiController {
+
     /**
      *
      * @param {mongoose.Model} model
      */
     constructor(model) {
         this.model = model;
+        this.filteringFields = [];
+    }
+
+    /**
+     *
+     * @param {[{field: string, type: string}]} fields
+     */
+    setFilteringFields(fields) {
+        this.filteringFields = fields;
     }
 
     /**
@@ -43,6 +54,53 @@ module.exports = class ApiController {
 
     /**
      *
+     * @param {express.ParsedQs} query
+     * @returns {Object}
+     * @private
+     */
+    _parseFiltering(query) {
+
+        const filters = {};
+
+        if (!this.filteringFields || this.filteringFields.length === 0) {
+            return {};
+        }
+
+        for (const filteringField of this.filteringFields) {
+
+            if (!query.hasOwnProperty(filteringField.field)) {
+                continue;
+            }
+
+            const fieldName = filteringField.field;
+
+
+            const fieldValue = query[fieldName];
+
+
+            switch (filteringField.type) {
+                case "date":
+
+                    const date = Date.parse(fieldValue);
+
+                    filters[fieldName] = {
+                        $gte: fns.startOfDay(date),
+                        $lte: fns.endOfDay(date)
+                    };
+
+                    break;
+                case "date_range":
+                    // TODO:
+                    break;
+            }
+
+        }
+
+        return filters;
+    }
+
+    /**
+     *
      * @param {express.Request} req
      * @param {express.Response} res
      * @returns {Promise<void>}
@@ -51,10 +109,12 @@ module.exports = class ApiController {
 
         const {limit, page} = this._parseIndexQuery(req.query);
 
+        const filter = this._parseFiltering(req.query);
+
         try {
 
-            const total = await this.model.count();
-            const entities = await this.model.find({})
+            const total = await this.model.count(filter);
+            const entities = await this.model.find(filter)
                 .limit(limit)
                 .skip(limit * (page - 1))
                 .lean();
