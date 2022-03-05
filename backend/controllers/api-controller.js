@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
-const fns = require('date-fns')
+const fns = require("date-fns");
 
 module.exports = class ApiController {
 
@@ -30,8 +30,7 @@ module.exports = class ApiController {
     _parseIndexQuery(query) {
 
         const parsedQuery = {
-            limit: 20,
-            page: 1,
+            limit: 20, page: 1,
         };
 
         if (query.hasOwnProperty("limit")) {
@@ -77,15 +76,24 @@ module.exports = class ApiController {
 
             const fieldValue = query[fieldName];
 
-
             switch (filteringField.type) {
+                case "match":
+
+                    if (Array.isArray(fieldValue)) {
+                        filters[fieldName] = {
+                            $in: fieldValue
+                        };
+                    } else {
+                        filters[fieldName] = fieldValue;
+                    }
+                    
+                    break;
                 case "date":
 
                     const date = Date.parse(fieldValue);
 
                     filters[fieldName] = {
-                        $gte: fns.startOfDay(date),
-                        $lte: fns.endOfDay(date)
+                        $gte: fns.startOfDay(date), $lte: fns.endOfDay(date)
                     };
 
                     break;
@@ -120,23 +128,15 @@ module.exports = class ApiController {
                 .lean();
 
             const response = {
-                total,
-                page,
-                entities
+                total, page, entities
             };
 
-            res.send(
-                JSON.stringify(response)
-            );
+            res.send(JSON.stringify(response));
 
         } catch (e) {
-            res.status(500).send(
-                JSON.stringify(
-                    {
-                        "error": "Error while fetching entities: " + e,
-                    }
-                )
-            );
+            res.status(500).send(JSON.stringify({
+                "error": "Error while fetching entities: " + e,
+            }));
         }
     }
 };
