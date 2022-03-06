@@ -67,10 +67,6 @@ module.exports = class ApiController {
 
         for (const filteringField of this.filteringFields) {
 
-            if (!query.hasOwnProperty(filteringField.field)) {
-                continue;
-            }
-
             const fieldName = filteringField.field;
 
 
@@ -79,6 +75,10 @@ module.exports = class ApiController {
             switch (filteringField.type) {
                 case "match":
 
+                    if (!query.hasOwnProperty(filteringField.field)) {
+                        continue;
+                    }
+
                     if (Array.isArray(fieldValue)) {
                         filters[fieldName] = {
                             $in: fieldValue
@@ -86,19 +86,36 @@ module.exports = class ApiController {
                     } else {
                         filters[fieldName] = fieldValue;
                     }
-                    
-                    break;
-                case "date":
-
-                    const date = Date.parse(fieldValue);
-
-                    filters[fieldName] = {
-                        $gte: fns.startOfDay(date), $lte: fns.endOfDay(date)
-                    };
 
                     break;
                 case "date_range":
-                    // TODO:
+
+                    const dateRangeFilter = {};
+
+                    const minQueryField = `${fieldName}_min`;
+                    const maxQueryField = `${fieldName}_max`;
+
+
+                    if (query.hasOwnProperty(minQueryField)) {
+                        const dateMinQuery = query[minQueryField];
+
+                        dateRangeFilter.$gte = fns.startOfDay(
+                            Date.parse(dateMinQuery)
+                        );
+                    }
+
+                    if (query.hasOwnProperty(maxQueryField)) {
+                        const dateMaxQuery = query[maxQueryField];
+
+                        dateRangeFilter.$lte = fns.endOfDay(
+                            Date.parse(dateMaxQuery)
+                        );
+                    }
+
+                    if (Object.keys(dateRangeFilter).length > 0) {
+                        filters[fieldName] = dateRangeFilter;
+                    }
+
                     break;
             }
 
