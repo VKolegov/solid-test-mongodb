@@ -138,7 +138,7 @@ module.exports = class ApiController {
 
         try {
 
-            const total = await this.model.count(filter);
+            const total = await this.model.countDocuments(filter);
             const entities = await this.model.find(filter)
                 .limit(limit)
                 .skip(limit * (page - 1))
