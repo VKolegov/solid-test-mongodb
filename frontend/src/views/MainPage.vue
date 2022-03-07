@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Api from "@/api";
 import type {Ref} from "vue";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
+import VueSelect from "vue-select";
 
 /**
  * Tickers
@@ -32,6 +33,7 @@ async function fetchQuotes() {
       {
         limit: limit.value,
         page: page.value,
+        ...filter,
       }
   );
 
@@ -49,6 +51,20 @@ onMounted(() => {
 });
 
 /**
+ * Filtering
+ */
+
+const filter = reactive({});
+
+watch(
+    filter,
+    async () => {
+      await fetchQuotes();
+    }
+);
+
+
+/**
  * Pagination
  */
 
@@ -61,14 +77,14 @@ const pageList = computed<number[]>(
 
       const list = new Array(totalPages.value);
       for (let i = 1; i <= totalPages.value; i++) {
-        list[i-1] = i;
+        list[i - 1] = i;
       }
 
       return list;
     }
 );
 
-watch(page, async(newVal: number) => {
+watch(page, async (newVal: number) => {
   if (newVal >= 1 && newVal <= totalPages.value) {
     await fetchQuotes();
   }
@@ -84,9 +100,21 @@ function setPage(n: number) {
 
 <template>
 <div>
-  <div v-for="ticker in tickers">
-    <span>[{{ ticker.ticker }}] {{ ticker.name }}</span>
-  </div>
+  <label>Фильтровать по тикеру:</label>
+  <VueSelect
+      v-model="filter.ticker"
+      multiple
+      :options="tickers"
+      :reduce="ticker => ticker.ticker"
+      label="name"
+  >
+    <template #option="ticker">
+      <span> [{{ ticker.ticker }}] {{ ticker.name }} </span>
+    </template>
+    <template #selected-option="ticker">
+      <span>{{ ticker.ticker }}</span>
+    </template>
+  </VueSelect>
 
   <table class="table table-responsive-lg table-striped">
     <thead>
@@ -138,3 +166,7 @@ function setPage(n: number) {
 
 </div>
 </template>
+
+<style>
+@import 'vue-select/dist/vue-select.css';
+</style>
