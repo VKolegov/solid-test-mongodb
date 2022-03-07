@@ -19,7 +19,7 @@ services:
       context: ./backend
       dockerfile: ./Dockerfile
     volumes:
-      - './backend/:/usr/src/app'
+      - './backend:/usr/src/app'
       - './backend/node_modules:/usr/src/app/node_modules'
     ports:
       - "80:80"
