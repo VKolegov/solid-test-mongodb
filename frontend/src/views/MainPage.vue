@@ -3,6 +3,7 @@ import Api from "@/api";
 import type {Ref} from "vue";
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import VueSelect from "vue-select";
+import {format} from "date-fns";
 
 /**
  * Tickers
@@ -55,6 +56,7 @@ onMounted(() => {
  */
 
 const filter = reactive({});
+const quotesDateRange = ref<Date[]|null>([]);
 
 watch(
     filter,
@@ -63,12 +65,26 @@ watch(
     }
 );
 
+function onDateRangeUpdate(dateRange: Date[]|null) {
+
+  quotesDateRange.value = dateRange;
+
+  if (!dateRange) {
+    filter.date_min = undefined;
+    filter.date_max = undefined;
+    return;
+  }
+
+  filter.date_min = format(dateRange[0], "uuuu-MM-dd");
+  filter.date_max = format(dateRange[1], "uuuu-MM-dd");
+}
+
 
 /**
  * Pagination
  */
 
-const page = ref(3);
+const page = ref(1);
 const limit = ref(50);
 const totalPages = ref(1);
 
@@ -115,6 +131,17 @@ function setPage(n: number) {
       <span>{{ ticker.ticker }}</span>
     </template>
   </VueSelect>
+
+  <label>Фильтровать по дате:</label>
+  <Datepicker
+      :model-value="quotesDateRange"
+      @update:modelValue="onDateRangeUpdate"
+      :range="true"
+      :auto-apply="true"
+      :enable-time-picker="false"
+      format="yyyy/MM/dd"
+  >
+  </Datepicker>
 
   <table class="table table-responsive-lg table-striped">
     <thead>
