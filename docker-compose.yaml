@@ -28,6 +28,8 @@ services:
       - "${BACKEND_PORT}:80"
     networks:
       - app-network
+    depends_on:
+      - mongodb
 
 
   mongodb:
