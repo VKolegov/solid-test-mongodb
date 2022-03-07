@@ -3,7 +3,7 @@ import Api from "@/api";
 import type {Ref} from "vue";
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import VueSelect from "vue-select";
-import {format} from "date-fns";
+import {format, parse} from "date-fns";
 
 /**
  * Tickers
@@ -21,6 +21,29 @@ async function fetchTickers() {
 
   tickers.value = response.entities;
 }
+
+type StringMap = {
+  [k: string]: string
+};
+
+type TickerMap = {
+  [t: string]: Ticker
+};
+
+const tickersMap = computed<TickerMap>(
+    () => {
+      const map : TickerMap = {};
+      if (!tickers?.value?.length) {
+        return map;
+      }
+
+      for (const ticker of tickers.value) {
+        map[ticker.ticker] = ticker;
+      }
+
+      return map;
+    }
+);
 
 /**
  * Quotes
@@ -55,7 +78,11 @@ onMounted(() => {
  * Filtering
  */
 
-const filter = reactive({});
+type APIFilter = {
+  [field: string]: any
+};
+
+const filter = reactive<APIFilter>({});
 const quotesDateRange = ref<Date[]|null>([]);
 
 watch(
@@ -112,6 +139,49 @@ function setPage(n: number) {
   }
 }
 
+
+/**
+ * Formatting
+ */
+
+// Коды валют в ISO 4217
+const currencyLocales : StringMap = {
+  USD: 'en-US',
+  RUR: 'ru-RU',
+};
+
+// Коды валют в ISO 4217
+const currencyCodes : StringMap = {
+  'en-US': 'USD',
+  'ru-RU': 'RUB',
+};
+
+function formatPrice(tickerQuote: Quote) {
+
+  const ticker = tickersMap.value[tickerQuote.ticker];
+
+  const locale = currencyLocales[ticker.currency];
+  const currencyCode = currencyCodes[locale];
+
+  const options = {
+    style: "currency",
+    currency: currencyCode,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  };
+
+  return new Intl.NumberFormat(locale, options).format(tickerQuote.price);
+}
+
+function formatDate(date: Date|number|string) {
+
+  if (typeof date === "string") {
+    date = Date.parse(date);
+  }
+
+  return format(date, "uuuu/MM/dd");
+}
+
 </script>
 
 <template>
@@ -157,10 +227,10 @@ function setPage(n: number) {
         {{ quote.ticker }}
       </td>
       <td>
-        {{ quote.date }}
+        {{ formatDate(quote.date) }}
       </td>
       <td>
-        {{ quote.price }}
+        {{ formatPrice(quote) }}
       </td>
     </tr>
     </tbody>
