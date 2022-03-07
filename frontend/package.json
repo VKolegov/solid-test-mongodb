@@ -2,7 +2,7 @@
   "name": "solid-test-frontend",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite --port 8000 --host",
+    "dev": "vite --host",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview --port 5050",
     "typecheck": "vue-tsc --noEmit",

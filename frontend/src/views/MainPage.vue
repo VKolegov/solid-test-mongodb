@@ -3,14 +3,19 @@ import Api from "@/api";
 import type {Ref} from "vue";
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import VueSelect from "vue-select";
-import {format, parse} from "date-fns";
+import {format} from "date-fns";
+
+let API_HOST = import.meta.env.VITE_BACKEND_HOST || "http://localhost";
+const API_PORT = import.meta.env.VITE_BACKEND_PORT || 80;
+
+API_HOST = `${API_HOST}:${API_PORT}`;
 
 /**
  * Tickers
  */
 
 const tickers: Ref<Ticker[]> = ref([]);
-const tickersAPI = new Api<Ticker>("http://localhost:80/api/v1/tickers");
+const tickersAPI = new Api<Ticker>(`${API_HOST}/api/v1/tickers`);
 
 async function fetchTickers() {
   const response = await tickersAPI.index(
@@ -32,7 +37,7 @@ type TickerMap = {
 
 const tickersMap = computed<TickerMap>(
     () => {
-      const map : TickerMap = {};
+      const map: TickerMap = {};
       if (!tickers?.value?.length) {
         return map;
       }
@@ -50,7 +55,7 @@ const tickersMap = computed<TickerMap>(
  */
 
 const quotes: Ref<Quote[]> = ref([]);
-const quotesAPI = new Api<Quote>("http://localhost:80/api/v1/quotes");
+const quotesAPI = new Api<Quote>(`${API_HOST}/api/v1/quotes`);
 
 async function fetchQuotes() {
   const response = await quotesAPI.index(
@@ -83,7 +88,7 @@ type APIFilter = {
 };
 
 const filter = reactive<APIFilter>({});
-const quotesDateRange = ref<Date[]|null>([]);
+const quotesDateRange = ref<Date[] | null>([]);
 
 watch(
     filter,
@@ -92,7 +97,7 @@ watch(
     }
 );
 
-function onDateRangeUpdate(dateRange: Date[]|null) {
+function onDateRangeUpdate(dateRange: Date[] | null) {
 
   quotesDateRange.value = dateRange;
 
@@ -145,15 +150,15 @@ function setPage(n: number) {
  */
 
 // Коды валют в ISO 4217
-const currencyLocales : StringMap = {
-  USD: 'en-US',
-  RUR: 'ru-RU',
+const currencyLocales: StringMap = {
+  USD: "en-US",
+  RUR: "ru-RU",
 };
 
 // Коды валют в ISO 4217
-const currencyCodes : StringMap = {
-  'en-US': 'USD',
-  'ru-RU': 'RUB',
+const currencyCodes: StringMap = {
+  "en-US": "USD",
+  "ru-RU": "RUB",
 };
 
 function formatPrice(tickerQuote: Quote) {
@@ -173,7 +178,7 @@ function formatPrice(tickerQuote: Quote) {
   return new Intl.NumberFormat(locale, options).format(tickerQuote.price);
 }
 
-function formatDate(date: Date|number|string) {
+function formatDate(date: Date | number | string) {
 
   if (typeof date === "string") {
     date = Date.parse(date);

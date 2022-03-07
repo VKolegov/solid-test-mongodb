@@ -6,23 +6,26 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
+    environment:
+      - VITE_FRONTEND_PORT
+      - VITE_BACKEND_PORT
     volumes:
       - './frontend:/app'
       - '/app/node_modules/'
     ports:
-      - "8000:8000"
-    networks:
-      - app-network
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
 
   node:
     build:
       context: ./backend
       dockerfile: ./Dockerfile
     volumes:
-      - './backend:/usr/src/app'
-      - './backend/node_modules:/usr/src/app/node_modules'
+      - './backend:/node-server'
+      - './backend/node_modules:/node-server/node_modules'
+    environment:
+      - FRONTEND_PORT
     ports:
-      - "80:80"
+      - "${BACKEND_PORT}:80"
     networks:
       - app-network
 
