@@ -1,0 +1,8 @@
+FROM node:lts-alpine
+WORKDIR /node-server
+
+RUN npm install -g nodemon
+
+COPY ./start.sh .
+EXPOSE 80
+RUN ["chmod", "+x", "/node-server/start.sh"]

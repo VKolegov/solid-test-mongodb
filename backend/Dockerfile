@@ -1,9 +1,9 @@
 FROM node:lts-alpine
 WORKDIR /node-server
 
-RUN npm install -g nodemon
+COPY package*.json ./
+RUN npm install
+COPY . .
 
-COPY ./start.sh .
 EXPOSE 80
-RUN ["chmod", "+x", "/node-server/start.sh"]
-
+CMD [ "/node-server/node_modules/.bin/nodemon", "server.js" ]
