@@ -9,9 +9,10 @@ services:
     environment:
       - VITE_FRONTEND_PORT
       - VITE_BACKEND_PORT
+    entrypoint: ["sh", "/app/start.sh"]
     volumes:
       - './frontend:/app'
-      - '/app/node_modules/'
+      - './frontend/node_modules:/app/node_modules/'
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
 
@@ -19,6 +20,7 @@ services:
     build:
       context: ./backend
       dockerfile: ./Dockerfile
+    entrypoint: ["sh", "/node-server/start.sh"]
     volumes:
       - './backend:/node-server'
       - './backend/node_modules:/node-server/node_modules'
